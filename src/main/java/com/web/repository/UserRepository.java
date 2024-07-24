@@ -1,0 +1,28 @@
+package com.web.repository;
+
+import com.web.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.*;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@SuppressWarnings("unused")
+@Repository
+public interface UserRepository extends JpaRepository<User,Long> {
+
+    @Query(value = "select u.* from user u",nativeQuery = true)
+    Page<User> findAll(Pageable pageable);
+
+    @Query(value = "select u.* from user u where u.username = ?1 and u.password = ?2", nativeQuery = true)
+    Optional<User> findByUsernameAndPassword(String username, String password);
+
+    @Query(value = "select u.* from user u where u.username = ?1", nativeQuery = true)
+    Optional<User> findByUsername(String username);
+
+    @Query(value = "select u.* from user u where u.role = ?1",nativeQuery = true)
+    List<User> getUserByRole(String role);
+
+}
