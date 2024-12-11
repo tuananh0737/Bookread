@@ -2,12 +2,11 @@ package com.web.api;
 
 import com.web.config.MessageException;
 import com.web.dto.BookSearch;
-import com.web.entity.Author;
 import com.web.entity.Book;
-import com.web.entity.Genres;
 import com.web.repository.AuthorRepository;
 import com.web.repository.BookRepository;
 import com.web.repository.GenresRepository;
+import com.web.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +27,8 @@ public class BookApi {
 
     @Autowired
     private GenresRepository genresRepository;
+
+    private UserService userService;
 
     @PostMapping("/admin/add-update-book")
     public ResponseEntity<?> saveOrUpdate(@RequestBody Book book) {

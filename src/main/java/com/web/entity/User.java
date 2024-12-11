@@ -13,7 +13,6 @@ import java.util.List;
 @Getter
 @Setter
 public class User{
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -29,5 +28,11 @@ public class User{
     private String role;
 
     private Boolean actived;
+
+    private String phone;
+
+    private String idCard;
+
+//    private Integer page_in_year;
 }
 

@@ -24,6 +24,10 @@ public class UserService implements UserDetailsService {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
+    public Optional<User> findById(Long id) {
+        return userRepository.findById(id);
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = userRepository.findByUsername(username);
@@ -73,6 +77,15 @@ public class UserService implements UserDetailsService {
             throw new MessageException("Tài khoản đã bị khóa");
         }
         return true;
+    }
+
+    public User updateUserInfo(User user) {
+        User existingUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new MessageException("User not found", 404));
+        existingUser.setFullname(user.getFullname());
+        existingUser.setPhone(user.getPhone());
+        existingUser.setIdCard(user.getIdCard());
+        return userRepository.save(existingUser);
     }
 }
 

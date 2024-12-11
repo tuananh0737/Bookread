@@ -1,8 +1,6 @@
 package com.web.api;
 
 import com.web.config.MessageException;
-import com.web.entity.Author;
-import com.web.entity.Book;
 import com.web.entity.Comment;
 import com.web.entity.User;
 import com.web.repository.BookRepository;

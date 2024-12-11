@@ -1,7 +1,10 @@
 package com.web.api;
 
+import com.web.dto.SearchByGenres;
 import com.web.entity.Author;
+import com.web.entity.Book;
 import com.web.entity.Genres;
+import com.web.repository.BookRepository;
 import com.web.repository.GenresRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +21,9 @@ public class GenresApi {
     @Autowired
     private GenresRepository genresRepository;
 
+    @Autowired
+    private BookRepository bookRepository;
+
     @PostMapping("/admin/add-update-genres")
     public ResponseEntity<?> saveOrUpdate(@RequestBody Genres genres) {
         Genres result = genresRepository.save(genres);
@@ -32,5 +38,19 @@ public class GenresApi {
     @DeleteMapping("/admin/delete-genres")
     public void delete(@RequestParam("id") Long id) {
         genresRepository.deleteById(id);
+    }
+
+    @PostMapping("/public/search-by-genres")
+    public List<Book> search(@RequestBody SearchByGenres searchByGenres) {
+        String param = searchByGenres.getParam();
+        if (param == null) {
+            param = "%";
+        }
+        param = "%" + param + "%";
+        List<Book> list = null;
+        if(param != null) {
+            list = bookRepository.findByGenres(param);
+        }
+        return list;
     }
 }

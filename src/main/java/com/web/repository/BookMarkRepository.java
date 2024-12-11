@@ -2,6 +2,7 @@ package com.web.repository;
 
 import com.web.entity.Author;
 import com.web.entity.BookMark;
+import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -17,4 +18,7 @@ public interface BookMarkRepository extends JpaRepository<BookMark,Long> {
 
     @Query("select b from BookMark b where b.user.id = ?1")
     public List<BookMark> findByUser(Long userId);
+
+//    @Query("select b from BookMark b where b.user.name like ?1")
+//    public List<BookMark> findByName(String param) ;
 }

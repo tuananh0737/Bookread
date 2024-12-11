@@ -1,21 +1,17 @@
 package com.web.api;
 
 import com.web.dto.LoginDto;
-import com.web.service.CustomUserDetails;
 import com.web.entity.User;
 import com.web.config.JwtTokenProvider;
 import com.web.repository.UserRepository;
 import com.web.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api")
@@ -60,5 +56,23 @@ public class UserApi {
         return userRepository.getUserByRole(role);
     }
 
+    @PostMapping("/user/update-info")
+    public ResponseEntity<?> userUpdateInfo(@RequestBody User user) {
+        try {
+            User updatedUser = userService.updateUserInfo(user);
+            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Failed to update user info", HttpStatus.BAD_REQUEST);
+        }
+    }
 
+    @PostMapping("/admin/update-info")
+    public ResponseEntity<?> adminUpdateInfo(@RequestBody User user) {
+        try {
+            User updatedUser = userService.updateUserInfo(user);
+            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Failed to update user info", HttpStatus.BAD_REQUEST);
+        }
+    }
 }

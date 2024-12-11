@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 
+
 import javax.persistence.*;
 import java.sql.Date;
 import java.util.List;
@@ -30,4 +31,5 @@ public class Author {
     @OneToMany(mappedBy = "author", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Book> books;
+
 }

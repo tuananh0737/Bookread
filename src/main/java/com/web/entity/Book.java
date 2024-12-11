@@ -27,6 +27,9 @@ public class Book {
 
     private String description;
 
+
+    private Integer quantity;
+
     @ManyToOne
     @JoinColumn(name = "author_id")
     private Author author;
@@ -38,4 +41,5 @@ public class Book {
     @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE)
     @JsonManagedReference
     private List<Comment> comments = new ArrayList<>();
+
 }

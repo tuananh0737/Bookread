@@ -20,6 +20,8 @@ public class Genres {
 
     private String name;
 
+    private String Details;
+
     @OneToMany(mappedBy = "genres", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Book> books;

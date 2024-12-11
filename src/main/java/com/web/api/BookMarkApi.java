@@ -1,9 +1,8 @@
 package com.web.api;
 
 import com.web.config.MessageException;
-import com.web.entity.Author;
+//import com.web.dto.BookmarkAdd;
 import com.web.entity.BookMark;
-import com.web.entity.Comment;
 import com.web.entity.User;
 import com.web.repository.BookMarkRepository;
 import com.web.service.UserService;
@@ -18,12 +17,14 @@ import java.util.List;
 @RequestMapping("/api")
 @CrossOrigin("*")
 public class BookMarkApi {
-
     @Autowired
     private BookMarkRepository bookMarkRepository;
 
     @Autowired
     private UserService userService;
+
+//    @Autowired
+//    private BookmarkAdd bookmarkAdd;
 
     @PostMapping("/user/add-bookmark")
     public ResponseEntity<?> save(@RequestBody BookMark bookMark) {
@@ -51,4 +52,13 @@ public class BookMarkApi {
         User user = userService.getUserWithAuthority();
         return bookMarkRepository.findByUser(user.getId());
     }
+
+//    @PostMapping("/user/page-in-year")
+//    public ResponseEntity<?> save(@RequestBody BookmarkAdd bookmarkAdd) {
+//        Integer numb = bookmarkAdd.getNumb();
+//        User user = userService.getUserWithAuthority();
+//        bookmarkAdd.setUser(user);
+//        bookmarkAdd.setPageInYear(bookmarkAdd.getPageInYear() + numb);
+//        return ResponseEntity.ok(bookmarkAdd);
+//    }
 }

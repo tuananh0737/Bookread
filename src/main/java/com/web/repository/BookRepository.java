@@ -22,4 +22,7 @@ public interface BookRepository extends JpaRepository<Book,Long> {
 
     @Query("select b from Book b where (b.name like ?1 or b.author.fullname like ?1 or b.genres.name like ?1) and b.author.id = ?2 and b.genres.id = ?3")
     public List<Book> findByParamAndAuthorAndGenre(String param, Long authorId, Long genreId);
+
+    @Query("select b from Book b where b.genres.name like ?1")
+    public List<Book> findByGenres(String param);
 }
