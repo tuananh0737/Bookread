@@ -11,5 +11,8 @@ import java.util.List;
 @Repository
 public interface GenresRepository extends JpaRepository<Genres,Long> {
 
+    @Query("select g from Genres g where g.name like ?1")
+    public List<Genres> findByParam(String param) ;
+
 }
 

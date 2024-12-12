@@ -1,6 +1,7 @@
 package com.web.api;
 
 import com.web.dto.LoginDto;
+import com.web.dto.UserSearch;
 import com.web.entity.User;
 import com.web.config.JwtTokenProvider;
 import com.web.repository.UserRepository;
@@ -75,4 +76,20 @@ public class UserApi {
             return new ResponseEntity<>("Failed to update user info", HttpStatus.BAD_REQUEST);
         }
     }
+
+    @PostMapping("admin/search-user")
+    public List<User> search(@RequestBody UserSearch userSearch) {
+        String param = userSearch.getParam();
+        if (param == null) {
+            param = "";
+        }
+        param = "%" + param + "%";
+        List<User> list = null;
+        if (param != null) {
+            list = userRepository.findByParam(param);
+        }
+        return list;
+    }
+
+
 }

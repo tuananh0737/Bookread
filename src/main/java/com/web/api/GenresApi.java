@@ -1,5 +1,7 @@
 package com.web.api;
 
+import com.web.dto.AuthorSearch;
+import com.web.dto.GenreSearch;
 import com.web.dto.SearchByGenres;
 import com.web.entity.Author;
 import com.web.entity.Book;
@@ -50,6 +52,20 @@ public class GenresApi {
         List<Book> list = null;
         if(param != null) {
             list = bookRepository.findByGenres(param);
+        }
+        return list;
+    }
+
+    @PostMapping("/public/search-genre")
+    public List<Genres> search(@RequestBody GenreSearch genreSearch) {
+        String param = genreSearch.getParam();
+        if(param == null){
+            param = "";
+        }
+        param ="%" + param +"%" ;
+        List<Genres> list = null;
+        if(param != null){
+            list = genresRepository.findByParam(param);
         }
         return list;
     }
