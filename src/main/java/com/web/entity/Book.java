@@ -42,4 +42,7 @@ public class Book {
     @JsonManagedReference
     private List<Comment> comments = new ArrayList<>();
 
+    @Lob
+    @Column(name = "qr_code")
+    private byte[] qrCode;
 }

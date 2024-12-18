@@ -1,5 +1,6 @@
 package com.web.api;
 
+import com.web.config.MessageException;
 import com.web.dto.LoginDto;
 import com.web.dto.UserSearch;
 import com.web.entity.User;
@@ -91,5 +92,42 @@ public class UserApi {
         return list;
     }
 
+    @PostMapping("/admin/update-user")
+    public ResponseEntity<?> update(@RequestBody User user) {
+        User existingUser = userRepository.findById(user.getId()).orElse(null);
+
+        if (existingUser == null) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+
+        boolean phoneExists = userRepository.existsByPhone(user.getPhone())
+                && !existingUser.getPhone().equals(user.getPhone());
+        boolean idCardExists = userRepository.existsByIdCard(user.getIdCard())
+                && !existingUser.getIdCard().equals(user.getIdCard());
+
+        if (phoneExists) {
+            return new ResponseEntity<>("Số điện thoại đã tồn tại", HttpStatus.BAD_REQUEST);
+        }
+        if (idCardExists) {
+            return new ResponseEntity<>("ID card đã tồn tại", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            if (user.getPassword() == null || user.getPassword().isEmpty()) {
+                user.setPassword(existingUser.getPassword());
+            }
+
+            existingUser.setFullname(user.getFullname());
+            existingUser.setPhone(user.getPhone());
+            existingUser.setIdCard(user.getIdCard());
+            existingUser.setActived(user.getActived());
+            existingUser.setPassword(user.getPassword());
+
+            User result = userRepository.save(existingUser);
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Failed to update user", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }

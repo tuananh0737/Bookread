@@ -27,4 +27,10 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
     @Query("select u from User u where u.fullname like ?1 or u.idCard like ?1 or u.phone like ?1")
     List<User> findByParam(String param);
+
+//    @Query("select u from User u where u.phone like ?1")
+    boolean existsByPhone(String phone);
+
+//    @Query("select u from User u where u.idCard like ?1")
+    boolean existsByIdCard(String idCard);
 }
