@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @RestController
@@ -54,37 +56,71 @@ public class BorrowBookApi {
 
         borrowBook.setUser(user);
         borrowBook.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+        borrowBook.setReturnDueDate(Timestamp.valueOf(LocalDateTime.now().plusDays(10))); // Thêm hạn trả sách
+        borrowBook.setReturned(false); // Mặc định chưa trả
 
         BorrowBook savedBorrowBook = borrowBookRepository.save(borrowBook);
         return new ResponseEntity<>(savedBorrowBook, HttpStatus.CREATED);
     }
 
+    @PostMapping("/admin/return-book")
+    public ResponseEntity<?> returnBook(@RequestParam("borrowBookId") Long borrowBookId) {
+        try {
+            BorrowBook borrowBook = borrowBookRepository.findById(borrowBookId)
+                    .orElseThrow(() -> new MessageException("Thông tin mượn sách không tồn tại"));
 
+            if (borrowBook.getActualReturnDate() != null && borrowBook.getReturned() != null && borrowBook.getReturned()) {
+                return new ResponseEntity<>("Sách đã được trả trước đó", HttpStatus.BAD_REQUEST);
+            }
 
-    @GetMapping("/user/find-borrowBook-by-user")
-    public ResponseEntity<List<BorrowBook>> findBorrowBooksByUser() {
-        User user = userService.getUserWithAuthority();
-        List<BorrowBook> borrowBooks = borrowBookRepository.findByUser(user.getId());
-        return new ResponseEntity<>(borrowBooks, HttpStatus.OK);
+            Book book = borrowBook.getBook();
+            book.setQuantity(book.getQuantity() + 1);
+            bookRepository.save(book);
+
+            borrowBook.setActualReturnDate(new Timestamp(System.currentTimeMillis()));
+            borrowBook.setReturned(true);
+            borrowBookRepository.save(borrowBook);
+
+            return new ResponseEntity<>("Trả sách thành công", HttpStatus.OK);
+        } catch (MessageException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>("Có lỗi xảy ra khi trả sách: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
-    @GetMapping("/admin/find-borrowBook")
-    public ResponseEntity<List<BorrowBook>> findBorrowBooksByUserId(@RequestParam("userId") Long userId) {
-        List<BorrowBook> borrowBooks = borrowBookRepository.findByUser(userId);
-        return new ResponseEntity<>(borrowBooks, HttpStatus.OK);
+
+
+
+    @GetMapping("/admin/statistics")
+    public ResponseEntity<?> getLibraryStatistics() {
+        long totalBorrowed = borrowBookRepository.countTotalBorrowed();
+        long returnedOnTime = borrowBookRepository.countReturnedOnTime();
+        long returnedLate = borrowBookRepository.countReturnedLate();
+        long notReturned = borrowBookRepository.countNotReturned();
+
+        return new ResponseEntity<>(String.format(
+                "Tổng sách mượn: %d, Trả đúng hạn: %d, Trả quá hạn: %d, Chưa trả: %d",
+                totalBorrowed, returnedOnTime, returnedLate, notReturned
+        ), HttpStatus.OK);
     }
 
+    @GetMapping("/admin/statistics-by-user")
+    public ResponseEntity<?> getUserStatistics(@RequestParam("userId") Long userId) {
+        try {
+            long totalBorrowed = borrowBookRepository.countByUser(userId);
+            long returnedOnTime = borrowBookRepository.countByUserAndReturnedOnTime(userId);
+            long returnedLate = borrowBookRepository.countByUserAndReturnedLate(userId);
+            long notReturned = borrowBookRepository.countByUserAndNotReturned(userId);
 
-    @DeleteMapping("/admin/delete-borrowBook")
-    public ResponseEntity<?> adminDeleteBorrowBook(@RequestParam("id") Long borrowBookId) {
-        BorrowBook borrowBook = borrowBookRepository.findById(borrowBookId)
-                .orElseThrow(() -> new MessageException("Không tìm thấy thông tin mượn sách"));
-
-        Book book = borrowBook.getBook();
-        book.setQuantity(book.getQuantity() + 1);
-        bookRepository.save(book);
-
-        borrowBookRepository.delete(borrowBook);
-        return new ResponseEntity<>("Xóa thông tin mượn sách thành công", HttpStatus.OK);
+            return new ResponseEntity<>(String.format(
+                    "Thống kê cho người dùng (ID: %d): Tổng sách mượn: %d, Trả đúng hạn: %d, Trả quá hạn: %d, Chưa trả: %d",
+                    userId, totalBorrowed, returnedOnTime, returnedLate, notReturned
+            ), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Không thể thực hiện thống kê: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
 }

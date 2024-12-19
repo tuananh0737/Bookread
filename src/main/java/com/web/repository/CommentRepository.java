@@ -13,4 +13,7 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
 
     @Query("select c from Comment c where c.book.id = ?1")
     public List<Comment> findByBook(Long bookId);
+
+    @Query("SELECT AVG(c.star) FROM Comment c WHERE c.book.id = ?1")
+    public Float findAverageStarByBookId(Long bookId);
 }

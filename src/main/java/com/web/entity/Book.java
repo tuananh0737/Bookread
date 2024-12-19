@@ -27,6 +27,7 @@ public class Book {
 
     private String description;
 
+    private Float averageRating;
 
     private Integer quantity;
 

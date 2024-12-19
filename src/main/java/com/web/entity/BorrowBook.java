@@ -8,7 +8,7 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Entity
-@Table(name= "borrow")
+@Table(name = "borrow")
 @Getter
 @Setter
 public class BorrowBook {
@@ -16,11 +16,17 @@ public class BorrowBook {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
-    @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss", timezone="Asia/Ho_Chi_Minh")
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Timestamp createdDate;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private Timestamp returnDueDate;
 
-    private Integer count;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private Timestamp actualReturnDate;
+
+    private Boolean returned;
 
     @ManyToOne
     @JoinColumn(name = "book_id")
@@ -29,5 +35,4 @@ public class BorrowBook {
     @OneToOne
     @JoinColumn(name = "user_id")
     private User user;
-
 }

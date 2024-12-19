@@ -16,4 +16,29 @@ public interface BorrowBookRepository extends JpaRepository<BorrowBook, Long> {
 
     @Query("select b from BorrowBook b where b.user.id = ?1")
     public List<BorrowBook> findByUser(Long userId);
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b")
+    long countTotalBorrowed();
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.returned = true AND b.actualReturnDate <= b.returnDueDate")
+    long countReturnedOnTime();
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.returned = true AND b.actualReturnDate > b.returnDueDate")
+    long countReturnedLate();
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.returned = false")
+    long countNotReturned();
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.user.id = ?1")
+    long countByUser(Long userId);
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.user.id = ?1 AND b.returned = true AND b.actualReturnDate <= b.returnDueDate")
+    long countByUserAndReturnedOnTime(Long userId);
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.user.id = ?1 AND b.returned = true AND b.actualReturnDate > b.returnDueDate")
+    long countByUserAndReturnedLate(Long userId);
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.user.id = ?1 AND b.returned = false")
+    long countByUserAndNotReturned(Long userId);
+
 }
