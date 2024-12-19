@@ -22,13 +22,13 @@ public class QrCodeService {
         String data = "ID: " + book.getId() + ", Name: " + book.getName() + ", Publish Year: " + book.getPublishYear();
         BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, 300, 300);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        MatrixToImageWriter.writeToStream(bitMatrix, "png", outputStream);  // Sử dụng định dạng PNG
+        MatrixToImageWriter.writeToStream(bitMatrix, "png", outputStream);
         return outputStream.toByteArray();
     }
 
     public void generateQr(String data, OutputStream outputStream) throws WriterException, IOException {
         BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, 300, 300);
-        MatrixToImageWriter.writeToStream(bitMatrix, "png", outputStream);  // Sử dụng định dạng PNG
+        MatrixToImageWriter.writeToStream(bitMatrix, "png", outputStream);
     }
 
     public String decodeQr(byte[] data) throws IOException, NotFoundException {

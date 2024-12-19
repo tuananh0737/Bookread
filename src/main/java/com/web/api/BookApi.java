@@ -5,7 +5,9 @@ import com.google.zxing.WriterException;
 import com.web.config.MessageException;
 import com.web.dto.BookSearch;
 import com.web.entity.Book;
+import com.web.entity.BookLocation;
 import com.web.repository.AuthorRepository;
+import com.web.repository.BookLocationRepository;
 import com.web.repository.BookRepository;
 import com.web.repository.GenresRepository;
 import com.web.service.QrCodeService;
@@ -38,6 +40,9 @@ public class BookApi {
 
     @Autowired
     private QrCodeService qrCodeService;
+
+    @Autowired
+    private BookLocationRepository bookLocationRepository;
 
     @PostMapping("/admin/add-update-book")
     public ResponseEntity<?> saveOrUpdate(@RequestBody Book book) {
@@ -134,5 +139,43 @@ public class BookApi {
         } catch (IOException | NotFoundException e) {
             return new ResponseEntity<>("Failed to decode QR code", HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    //cập nhật vị trí sách
+    @PostMapping("/admin/add-or-update-location")
+    public ResponseEntity<?> addOrUpdateLocation(@RequestParam("bookId") Long bookId,
+                                                 @RequestBody BookLocation location) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new MessageException("Sách không tồn tại"));
+
+        if (book.getLocation() != null) {
+            location.setId(book.getLocation().getId());
+        }
+
+        BookLocation savedLocation = bookLocationRepository.save(location);
+        book.setLocation(savedLocation);
+        bookRepository.save(book);
+
+        return new ResponseEntity<>("Cập nhật vị trí sách thành công", HttpStatus.OK);
+    }
+
+    //lấy thông tin vị trí sách
+    @GetMapping("/public/location-book")
+    public ResponseEntity<?> getBookLocation(@RequestParam("bookId") Long bookId) {
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new MessageException("Sách không tồn tại"));
+
+        BookLocation location = book.getLocation();
+        return new ResponseEntity<>(location, HttpStatus.OK);
+    }
+
+    //tìn sách theo kệ
+    @GetMapping("public/book-by-location")
+    public ResponseEntity<List<Book>> getBooksByLocation(@RequestParam("locationId") Long locationId) {
+        List<Book> books = bookRepository.findByBookLocation(locationId);
+        if (books.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(books);
     }
 }

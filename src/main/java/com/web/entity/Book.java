@@ -46,4 +46,9 @@ public class Book {
     @Lob
     @Column(name = "qr_code")
     private byte[] qrCode;
+
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "location_id")
+    private BookLocation location;
+
 }

@@ -22,8 +22,6 @@ public class Author {
 
     private String fullname;
 
-    private String address;
-
     private Date birthDay;
 
     private String nationality;

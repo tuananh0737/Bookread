@@ -29,7 +29,7 @@ public class BorrowBookApi {
     @Autowired
     private UserService userService;
 
-    @PostMapping("/admin/add-borrowBook")
+    @PostMapping("/librarian/add-borrowBook")
     public ResponseEntity<?> addBorrowBook(@RequestBody BorrowBook borrowBook) {
         if (borrowBook.getUser() == null || borrowBook.getUser().getId() == null) {
             throw new MessageException("Thông tin người dùng không hợp lệ");
@@ -63,7 +63,7 @@ public class BorrowBookApi {
         return new ResponseEntity<>(savedBorrowBook, HttpStatus.CREATED);
     }
 
-    @PostMapping("/admin/return-book")
+    @PostMapping("/librarian/return-book")
     public ResponseEntity<?> returnBook(@RequestParam("borrowBookId") Long borrowBookId) {
         try {
             BorrowBook borrowBook = borrowBookRepository.findById(borrowBookId)
