@@ -33,6 +33,5 @@ public class User{
 
     private String idCard;
 
-//    private Integer page_in_year;
 }
 

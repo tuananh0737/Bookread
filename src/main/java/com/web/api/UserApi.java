@@ -29,8 +29,6 @@ public class UserApi {
     @Autowired
     private UserService userService;
 
-
-
     @PostMapping("/login")
     public String login(@RequestBody LoginDto loginDto) throws Exception {
         String token = userService.login(loginDto.getUsername(), loginDto.getPassword());

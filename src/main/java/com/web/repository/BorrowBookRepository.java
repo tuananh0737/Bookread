@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
@@ -40,5 +41,11 @@ public interface BorrowBookRepository extends JpaRepository<BorrowBook, Long> {
 
     @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.user.id = ?1 AND b.returned = false")
     long countByUserAndNotReturned(Long userId);
+
+    @Query("SELECT b FROM BorrowBook b WHERE b.returned = false AND b.returnDueDate BETWEEN ?1 AND ?2")
+    List<BorrowBook> findBooksDueBetween(Timestamp start, Timestamp end);
+
+    @Query("SELECT b FROM BorrowBook b WHERE b.returned = false AND b.returnDueDate < ?1")
+    List<BorrowBook> findBooksOverdue(Timestamp now);
 
 }
