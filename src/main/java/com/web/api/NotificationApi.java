@@ -56,4 +56,14 @@ public class NotificationApi {
             return new ResponseEntity<>("Có lỗi xảy ra khi gửi thông báo: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    @PostMapping("/admin/send-overdue-notifications")
+    public ResponseEntity<?> sendOverdueNotifications() {
+        try {
+            int count = notificationService.sendOverdueNotificationsToAllUsers();
+            return new ResponseEntity<>("Thông báo đã được gửi đến " + count + " người dùng.", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Có lỗi xảy ra khi gửi thông báo: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

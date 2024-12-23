@@ -28,4 +28,8 @@ public class Notification {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(name = "book_id", nullable = true)
+    private Long bookId;
+
 }

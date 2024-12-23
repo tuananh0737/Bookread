@@ -60,4 +60,59 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    //chủ động gửi thông báo
+    public int sendOverdueNotificationsToAllUsers() {
+        List<BorrowBook> borrowBooks = borrowBookRepository.findAll();
+        Timestamp currentTime = Timestamp.valueOf(LocalDateTime.now());
+        int notificationCount = 0;
+
+        for (BorrowBook borrowBook : borrowBooks) {
+            if (borrowBook.getReturned() != null && borrowBook.getReturned()) {
+                continue; // Bỏ qua sách đã trả
+            }
+
+            Timestamp returnDueDate = borrowBook.getReturnDueDate();
+            long diff = returnDueDate.getTime() - currentTime.getTime();
+            User user = borrowBook.getUser();
+            String content;
+
+            if (diff <= 3 * 24 * 60 * 60 * 1000 && diff > 0) {
+                content = "Sách " + borrowBook.getBook().getName() + " của bạn sắp đến hạn trả (3 ngày nữa).";
+            } else if (diff < 0) {
+                content = "Sách " + borrowBook.getBook().getName() + " của bạn đã quá hạn trả. Vui lòng trả ngay!";
+            } else {
+                continue; // Không cần gửi thông báo
+            }
+
+            // Kiểm tra thông báo gần nhất đã được gửi
+            List<Notification> recentNotifications = notificationRepository.findRecentNotifications(
+                    user.getId(), borrowBook.getBook().getId(), content);
+
+            if (!recentNotifications.isEmpty()) {
+                Notification lastNotification = recentNotifications.get(0);
+                long timeSinceLastNotification = currentTime.getTime() - lastNotification.getCreatedDate().getTime();
+                if (timeSinceLastNotification < 2 * 24 * 60 * 60 * 1000) {
+                    continue; // Bỏ qua nếu chưa đủ 2 ngày
+                }
+            }
+
+            // Gửi thông báo mới
+            sendNotification(user, content, borrowBook.getBook().getId());
+            notificationCount++;
+        }
+
+        return notificationCount;
+    }
+
+    public void sendNotification(User user, String content, Long bookId) {
+        Notification notification = new Notification();
+        notification.setUser(user);
+        notification.setContent(content);
+        notification.setCreatedDate(new Timestamp(System.currentTimeMillis()));
+        notification.setBookId(bookId);
+//    notification.setRead(false);
+        notificationRepository.save(notification);
+    }
+
+
 }
