@@ -6,11 +6,13 @@ import com.web.repository.BookRepository;
 import com.web.repository.BorrowBookRepository;
 import com.web.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -90,7 +92,20 @@ public class BorrowBookApi {
         }
     }
 
+    // Người dùng xem danh sách sách đã mượn
+    @GetMapping("/user/find-borrowBook-by-user")
+    public ResponseEntity<List<BorrowBook>> findBorrowBooksByUser() {
+        User user = userService.getUserWithAuthority();
+        List<BorrowBook> borrowBooks = borrowBookRepository.findByUser(user.getId());
+        return new ResponseEntity<>(borrowBooks, HttpStatus.OK);
+    }
 
+    // Admin xem danh sách mượn của người dùng
+    @GetMapping("/admin/find-borrowBook")
+    public ResponseEntity<List<BorrowBook>> findBorrowBooksByUserId(@RequestParam("userId") Long userId) {
+        List<BorrowBook> borrowBooks = borrowBookRepository.findByUser(userId);
+        return new ResponseEntity<>(borrowBooks, HttpStatus.OK);
+    }
 
 
     @GetMapping("/admin/statistics")
@@ -122,5 +137,62 @@ public class BorrowBookApi {
             return new ResponseEntity<>("Không thể thực hiện thống kê: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/admin/statistics-monthly")
+    public ResponseEntity<?> getMonthlyStatistics(@RequestParam("month") int month, @RequestParam("year") int year) {
+        try {
+            long totalBorrowed = borrowBookRepository.countTotalBorrowedByMonth(month, year);
+            long returnedOnTime = borrowBookRepository.countReturnedOnTimeByMonth(month, year);
+            long returnedLate = borrowBookRepository.countReturnedLateByMonth(month, year);
+            long notReturned = borrowBookRepository.countNotReturnedByMonth(month, year);
+
+            return new ResponseEntity<>(String.format(
+                    "Thống kê tháng %d/%d: Tổng sách mượn: %d, Trả đúng hạn: %d, Trả quá hạn: %d, Chưa trả: %d",
+                    month, year, totalBorrowed, returnedOnTime, returnedLate, notReturned
+            ), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Không thể thực hiện thống kê: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/admin/statistics-range")
+    public ResponseEntity<?> getStatisticsByRange(
+            @RequestParam("startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        try {
+            Timestamp start = Timestamp.valueOf(startDate.atStartOfDay());
+            Timestamp end = Timestamp.valueOf(endDate.atTime(23, 59, 59));
+
+            long totalBorrowed = borrowBookRepository.countTotalBorrowedBetween(start, end);
+
+            return new ResponseEntity<>(String.format(
+                    "Thống kê từ %s đến %s: Tổng sách mượn: %d",
+                    startDate, endDate, totalBorrowed
+            ), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Không thể thực hiện thống kê: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/admin/statistics-average-borrow-time")
+    public ResponseEntity<?> getAverageBorrowTime() {
+        try {
+            Double averageTime = borrowBookRepository.calculateAverageBorrowTime();
+            return new ResponseEntity<>(String.format("Thời gian mượn trung bình: %.2f ngày", averageTime), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Không thể tính thời gian mượn trung bình: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+//    @GetMapping("/admin/statistics/most-borrowed-books")
+//    public ResponseEntity<?> getMostBorrowedBooks() {
+//        try {
+//            List<Object[]> books = borrowBookRepository.findMostBorrowedBooks();
+//            return new ResponseEntity<>(books, HttpStatus.OK);
+//        } catch (Exception e) {
+//            return new ResponseEntity<>("Không thể thống kê sách mượn nhiều nhất: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+//        }
+//    }
+
 
 }

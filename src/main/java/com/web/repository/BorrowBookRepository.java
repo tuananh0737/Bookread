@@ -42,10 +42,27 @@ public interface BorrowBookRepository extends JpaRepository<BorrowBook, Long> {
     @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.user.id = ?1 AND b.returned = false")
     long countByUserAndNotReturned(Long userId);
 
-    @Query("SELECT b FROM BorrowBook b WHERE b.returned = false AND b.returnDueDate BETWEEN ?1 AND ?2")
-    List<BorrowBook> findBooksDueBetween(Timestamp start, Timestamp end);
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE MONTH(b.createdDate) = ?1 AND YEAR(b.createdDate) = ?2")
+    long countTotalBorrowedByMonth(int month, int year);
 
-    @Query("SELECT b FROM BorrowBook b WHERE b.returned = false AND b.returnDueDate < ?1")
-    List<BorrowBook> findBooksOverdue(Timestamp now);
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE MONTH(b.actualReturnDate) = ?1 AND YEAR(b.actualReturnDate) = ?2 AND b.returned = true AND b.actualReturnDate <= b.returnDueDate")
+    long countReturnedOnTimeByMonth(int month, int year);
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE MONTH(b.actualReturnDate) = ?1 AND YEAR(b.actualReturnDate) = ?2 AND b.returned = true AND b.actualReturnDate > b.returnDueDate")
+    long countReturnedLateByMonth(int month, int year);
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.returned = false AND MONTH(b.returnDueDate) = ?1 AND YEAR(b.returnDueDate) = ?2")
+    long countNotReturnedByMonth(int month, int year);
+
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.createdDate BETWEEN ?1 AND ?2")
+    long countTotalBorrowedBetween(Timestamp start, Timestamp end);
+
+    @Query("SELECT AVG(DATEDIFF(b.actualReturnDate, b.createdDate)) FROM BorrowBook b WHERE b.returned = true")
+    Double calculateAverageBorrowTime();
+
+//    @Query("SELECT b.book.title, COUNT(b) AS borrowCount FROM BorrowBook b GROUP BY b.book.id ORDER BY borrowCount DESC")
+//    List<Object[]> findMostBorrowedBooks();
+
+
 
 }
