@@ -1,6 +1,7 @@
 package com.web.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -32,4 +33,14 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+
+    @JsonInclude
+    public String getBookName() {
+        return book != null ? book.getName() : null;
+    }
+
+    @JsonInclude
+    public Long getBookId() {
+        return book != null ? book.getId() : null;
+    }
 }

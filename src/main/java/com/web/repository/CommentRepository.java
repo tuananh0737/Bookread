@@ -1,5 +1,6 @@
 package com.web.repository;
 
+import com.web.dto.CommentDto;
 import com.web.entity.Author;
 import com.web.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,4 +17,8 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
 
     @Query("SELECT AVG(c.star) FROM Comment c WHERE c.book.id = ?1")
     public Float findAverageStarByBookId(Long bookId);
+
+    @Query("SELECT c FROM Comment c WHERE c.user.id = ?1")
+    List<Comment> findByUserId(Long userId);
+
 }

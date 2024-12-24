@@ -1,6 +1,7 @@
 package com.web.api;
 
 import com.web.config.MessageException;
+import com.web.dto.CommentDto;
 import com.web.entity.Book;
 import com.web.entity.Comment;
 import com.web.entity.User;
@@ -77,4 +78,12 @@ public class CommentApi {
     public List<Comment> findByBook(@RequestParam("bookId") Long bookId) {
         return commentRepository.findByBook(bookId);
     }
+
+    @GetMapping("/user/comments")
+    public ResponseEntity<List<Comment>> getUserComments() {
+        User user = userService.getUserWithAuthority();
+        List<Comment> comments = commentRepository.findByUserId(user.getId());
+        return new ResponseEntity<>(comments, HttpStatus.OK);
+    }
+
 }
