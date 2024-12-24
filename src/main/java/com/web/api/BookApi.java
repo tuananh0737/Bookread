@@ -178,4 +178,14 @@ public class BookApi {
         }
         return ResponseEntity.ok(books);
     }
+
+    @GetMapping("/public/books-by-rating")
+    public ResponseEntity<List<Book>> getBooksByRating() {
+        List<Book> books = bookRepository.findAllOrderByAverageRatingDesc();
+        if (books.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(books);
+    }
+
 }

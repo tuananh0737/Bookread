@@ -29,5 +29,8 @@ public interface BookRepository extends JpaRepository<Book,Long> {
     @Query("select b from Book b where b.location.id like ?1")
     public List<Book> findByBookLocation(Long locationId);
 
+    @Query("select b from Book b order by b.averageRating desc")
+    public List<Book> findAllOrderByAverageRatingDesc();
+
 
 }
