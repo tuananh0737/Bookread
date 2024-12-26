@@ -72,7 +72,7 @@ public class NotificationService {
 
         for (BorrowBook borrowBook : borrowBooks) {
             if (borrowBook.getReturned() != null && borrowBook.getReturned()) {
-                continue; // Bỏ qua sách đã trả
+                continue;
             }
 
             Timestamp returnDueDate = borrowBook.getReturnDueDate();
@@ -115,6 +115,4 @@ public class NotificationService {
         notification.setBookId(bookId);
         notificationRepository.save(notification);
     }
-
-
 }
