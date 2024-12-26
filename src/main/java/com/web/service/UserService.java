@@ -3,6 +3,7 @@ package com.web.service;
 import com.web.config.JwtTokenProvider;
 import com.web.config.MessageException;
 import com.web.config.SecurityUtils;
+import com.web.dto.ChangePasswordRequest;
 import com.web.entity.User;
 import com.web.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,5 +88,24 @@ public class UserService implements UserDetailsService {
         existingUser.setIdCard(user.getIdCard());
         return userRepository.save(existingUser);
     }
+
+    
+    public void changePassword(ChangePasswordRequest changePasswordRequest) {
+        Long userId = Long.valueOf(SecurityUtils.getCurrentUserLogin().get());
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new MessageException("User not found", 404));
+
+        if (!user.getPassword().equals(changePasswordRequest.getOldPassword())) {
+            throw new MessageException("Old password is incorrect", 400);
+        }
+
+        if (changePasswordRequest.getNewPassword() == null || changePasswordRequest.getNewPassword().isEmpty()) {
+            throw new MessageException("New password cannot be empty", 400);
+        }
+
+        user.setPassword(changePasswordRequest.getNewPassword());
+        userRepository.save(user);
+    }
+
 }
 

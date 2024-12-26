@@ -22,8 +22,6 @@ public class Notification {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Timestamp createdDate;
 
-//    private Boolean read;
-
     @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "user_id")

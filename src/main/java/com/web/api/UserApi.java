@@ -1,6 +1,7 @@
 package com.web.api;
 
 import com.web.config.MessageException;
+import com.web.dto.ChangePasswordRequest;
 import com.web.dto.LoginDto;
 import com.web.dto.UserSearch;
 import com.web.entity.User;
@@ -66,6 +67,19 @@ public class UserApi {
         }
     }
 
+    @PostMapping("/user/change-password")
+    public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest changePasswordRequest) {
+        try {
+            userService.changePassword(changePasswordRequest);
+            return new ResponseEntity<>("Password changed successfully", HttpStatus.OK);
+        } catch (MessageException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>("An error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
     @PostMapping("/admin/update-info")
     public ResponseEntity<?> adminUpdateInfo(@RequestBody User user) {
         try {
@@ -78,6 +92,20 @@ public class UserApi {
 
     @PostMapping("admin/search-user")
     public List<User> search(@RequestBody UserSearch userSearch) {
+        String param = userSearch.getParam();
+        if (param == null) {
+            param = "";
+        }
+        param = "%" + param + "%";
+        List<User> list = null;
+        if (param != null) {
+            list = userRepository.findByParam(param);
+        }
+        return list;
+    }
+
+    @PostMapping("librarian/search-user")
+    public List<User> LibrarianSearch(@RequestBody UserSearch userSearch) {
         String param = userSearch.getParam();
         if (param == null) {
             param = "";

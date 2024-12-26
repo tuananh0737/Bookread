@@ -20,14 +20,14 @@ public class QrCodeService {
 
     public byte[] generateQrCodeForBook(Book book) throws WriterException, IOException {
         String data = "ID: " + book.getId() + ", Name: " + book.getName() + ", Publish Year: " + book.getPublishYear();
-        BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, 300, 300);
+        BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, 400, 400);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         MatrixToImageWriter.writeToStream(bitMatrix, "png", outputStream);
         return outputStream.toByteArray();
     }
 
     public void generateQr(String data, OutputStream outputStream) throws WriterException, IOException {
-        BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, 300, 300);
+        BitMatrix bitMatrix = new QRCodeWriter().encode(data, BarcodeFormat.QR_CODE, 400, 400);
         MatrixToImageWriter.writeToStream(bitMatrix, "png", outputStream);
     }
 

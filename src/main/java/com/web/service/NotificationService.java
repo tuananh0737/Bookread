@@ -30,6 +30,7 @@ public class NotificationService {
     @Scheduled(cron = "0 0 0 * * *")
     public void checkAndSendNotifications() {
         List<BorrowBook> borrowBooks = borrowBookRepository.findAll();
+        Timestamp currentTime = Timestamp.valueOf(LocalDateTime.now());
 
         for (BorrowBook borrowBook : borrowBooks) {
             if (borrowBook.getReturned() != null && borrowBook.getReturned()) {
@@ -37,17 +38,21 @@ public class NotificationService {
             }
 
             Timestamp returnDueDate = borrowBook.getReturnDueDate();
-            Timestamp currentTime = Timestamp.valueOf(LocalDateTime.now());
             long diff = returnDueDate.getTime() - currentTime.getTime();
-
             User user = borrowBook.getUser();
+            Long bookId = borrowBook.getBook().getId();
+            String content;
+
             if (diff <= 3 * 24 * 60 * 60 * 1000 && diff > 0) {
-                // Gần đến hạn trả (3 ngày)
-                sendNotification(user, "Sách " + borrowBook.getBook().getName() + " của bạn sắp đến hạn trả (3 ngày nữa).");
+                content = "Sách " + borrowBook.getBook().getName() + " của bạn sắp đến hạn trả (3 ngày nữa).";
             } else if (diff < 0) {
-                // Quá hạn trả
-                sendNotification(user, "Sách " + borrowBook.getBook().getName() + " của bạn đã quá hạn trả. Vui lòng trả ngay!");
+                content = "Sách " + borrowBook.getBook().getName() + " của bạn đã quá hạn trả. Vui lòng trả ngay!";
+            } else {
+                continue;
             }
+
+            // Gửi thông báo mới kèm theo bookId
+            sendNotification(user, content, bookId);
         }
     }
 
@@ -56,7 +61,6 @@ public class NotificationService {
         notification.setUser(user);
         notification.setContent(content);
         notification.setCreatedDate(new Timestamp(System.currentTimeMillis()));
-//        notification.setRead(false);
         notificationRepository.save(notification);
     }
 
@@ -81,10 +85,9 @@ public class NotificationService {
             } else if (diff < 0) {
                 content = "Sách " + borrowBook.getBook().getName() + " của bạn đã quá hạn trả. Vui lòng trả ngay!";
             } else {
-                continue; // Không cần gửi thông báo
+                continue;
             }
 
-            // Kiểm tra thông báo gần nhất đã được gửi
             List<Notification> recentNotifications = notificationRepository.findRecentNotifications(
                     user.getId(), borrowBook.getBook().getId(), content);
 
@@ -92,7 +95,7 @@ public class NotificationService {
                 Notification lastNotification = recentNotifications.get(0);
                 long timeSinceLastNotification = currentTime.getTime() - lastNotification.getCreatedDate().getTime();
                 if (timeSinceLastNotification < 2 * 24 * 60 * 60 * 1000) {
-                    continue; // Bỏ qua nếu chưa đủ 2 ngày
+                    continue;
                 }
             }
 
@@ -110,7 +113,6 @@ public class NotificationService {
         notification.setContent(content);
         notification.setCreatedDate(new Timestamp(System.currentTimeMillis()));
         notification.setBookId(bookId);
-//    notification.setRead(false);
         notificationRepository.save(notification);
     }
 
