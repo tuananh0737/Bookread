@@ -147,7 +147,7 @@ public class UserApi {
             existingUser.setPhone(user.getPhone());
             existingUser.setIdCard(user.getIdCard());
             existingUser.setActived(user.getActived());
-            existingUser.setPassword(user.getPassword());
+            existingUser.setRole(user.getRole());
 
             User result = userRepository.save(existingUser);
             return new ResponseEntity<>(result, HttpStatus.OK);
