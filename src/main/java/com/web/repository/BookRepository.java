@@ -32,5 +32,7 @@ public interface BookRepository extends JpaRepository<Book,Long> {
     @Query("select b from Book b order by b.averageRating desc")
     public List<Book> findAllOrderByAverageRatingDesc();
 
+    @Query("SELECT SUM(b.quantity) FROM Book b")
+    long countTotalAvailableBooks();
 
 }

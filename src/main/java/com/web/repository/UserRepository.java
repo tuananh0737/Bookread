@@ -33,4 +33,7 @@ public interface UserRepository extends JpaRepository<User,Long> {
 
 //    @Query("select u from User u where u.idCard like ?1")
     boolean existsByIdCard(String idCard);
+
+    @Query("SELECT COUNT(u) FROM User u")
+    long countTotalRegisteredUsers();
 }

@@ -4,6 +4,7 @@ import com.web.config.MessageException;
 import com.web.entity.*;
 import com.web.repository.BookRepository;
 import com.web.repository.BorrowBookRepository;
+import com.web.repository.UserRepository;
 import com.web.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -30,6 +31,10 @@ public class BorrowBookApi {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserRepository userRepository;
+
 
     @PostMapping("/librarian/add-borrowBook")
     public ResponseEntity<?> addBorrowBook(@RequestBody BorrowBook borrowBook) {
@@ -103,6 +108,12 @@ public class BorrowBookApi {
     // Admin xem danh sách mượn của người dùng
     @GetMapping("/admin/find-borrowBook")
     public ResponseEntity<List<BorrowBook>> findBorrowBooksByUserId(@RequestParam("userId") Long userId) {
+        List<BorrowBook> borrowBooks = borrowBookRepository.findByUser(userId);
+        return new ResponseEntity<>(borrowBooks, HttpStatus.OK);
+    }
+
+    @GetMapping("/librarian/find-borrowBook")
+    public ResponseEntity<List<BorrowBook>> findBorrowBooksByUser(@RequestParam("userId") Long userId) {
         List<BorrowBook> borrowBooks = borrowBookRepository.findByUser(userId);
         return new ResponseEntity<>(borrowBooks, HttpStatus.OK);
     }
@@ -184,15 +195,20 @@ public class BorrowBookApi {
         }
     }
 
-//    @GetMapping("/admin/statistics/most-borrowed-books")
-//    public ResponseEntity<?> getMostBorrowedBooks() {
-//        try {
-//            List<Object[]> books = borrowBookRepository.findMostBorrowedBooks();
-//            return new ResponseEntity<>(books, HttpStatus.OK);
-//        } catch (Exception e) {
-//            return new ResponseEntity<>("Không thể thống kê sách mượn nhiều nhất: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//        }
-//    }
+    @GetMapping("/admin/general-statistics")
+    public ResponseEntity<?> getGeneralStatistics() {
+        try {
+            long totalAvailableBooks = bookRepository.countTotalAvailableBooks();
+            long booksCurrentlyBorrowed = borrowBookRepository.countBooksCurrentlyBorrowed();
+            long booksNeedToBeReturned = borrowBookRepository.countNotReturned();
+            long totalRegisteredUsers = userRepository.countTotalRegisteredUsers();
 
-
+            return new ResponseEntity<>(String.format(
+                    "Sách hiện có: %d, Sách đã cho mượn: %d, Sách cần trả: %d, Thành viên đăng ký: %d",
+                    totalAvailableBooks, booksCurrentlyBorrowed, booksNeedToBeReturned, totalRegisteredUsers
+            ), HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Không thể lấy thống kê: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

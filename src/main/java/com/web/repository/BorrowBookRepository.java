@@ -60,9 +60,7 @@ public interface BorrowBookRepository extends JpaRepository<BorrowBook, Long> {
     @Query("SELECT AVG(DATEDIFF(b.actualReturnDate, b.createdDate)) FROM BorrowBook b WHERE b.returned = true")
     Double calculateAverageBorrowTime();
 
-//    @Query("SELECT b.book.title, COUNT(b) AS borrowCount FROM BorrowBook b GROUP BY b.book.id ORDER BY borrowCount DESC")
-//    List<Object[]> findMostBorrowedBooks();
-
-
+    @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.returned = false")
+    long countBooksCurrentlyBorrowed();
 
 }
