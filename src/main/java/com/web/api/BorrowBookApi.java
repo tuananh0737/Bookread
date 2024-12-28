@@ -16,7 +16,9 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -200,15 +202,49 @@ public class BorrowBookApi {
         try {
             long totalAvailableBooks = bookRepository.countTotalAvailableBooks();
             long booksCurrentlyBorrowed = borrowBookRepository.countBooksCurrentlyBorrowed();
-            long booksNeedToBeReturned = borrowBookRepository.countNotReturned();
             long totalRegisteredUsers = userRepository.countTotalRegisteredUsers();
 
             return new ResponseEntity<>(String.format(
-                    "Sách hiện có: %d, Sách đã cho mượn: %d, Sách cần trả: %d, Thành viên đăng ký: %d",
-                    totalAvailableBooks, booksCurrentlyBorrowed, booksNeedToBeReturned, totalRegisteredUsers
+                    "Sách hiện có: %d, Sách đã cho mượn: %d, Thành viên đăng ký: %d",
+                    totalAvailableBooks, booksCurrentlyBorrowed, totalRegisteredUsers
             ), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Không thể lấy thống kê: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @GetMapping("/admin/dashboard-statistics")
+    public ResponseEntity<?> getDashboardStatistics() {
+        try {
+            long totalAvailableBooks = bookRepository.countTotalAvailableBooks();
+            long booksCurrentlyBorrowed = borrowBookRepository.countBooksCurrentlyBorrowed();
+            long totalRegisteredUsers = userRepository.countTotalRegisteredUsers();
+            long totalBorrowedBooks = borrowBookRepository.countTotalBorrowed();
+            long returnedOnTime = borrowBookRepository.countReturnedOnTime();
+            long returnedLate = borrowBookRepository.countReturnedLate();
+            long notReturned = borrowBookRepository.countNotReturned();
+
+            // Top sách được mượn nhiều nhất
+            List<Object[]> topBooks = borrowBookRepository.findTopBooks();
+
+            // Top người dùng mượn nhiều nhất
+            List<Object[]> topUsers = borrowBookRepository.findTopUsers();
+
+            Map<String, Object> statistics = new HashMap<>();
+            statistics.put("totalAvailableBooks", totalAvailableBooks);
+            statistics.put("booksCurrentlyBorrowed", booksCurrentlyBorrowed);
+            statistics.put("totalRegisteredUsers", totalRegisteredUsers);
+            statistics.put("totalBorrowedBooks", totalBorrowedBooks);
+            statistics.put("returnedOnTime", returnedOnTime);
+            statistics.put("returnedLate", returnedLate);
+            statistics.put("notReturned", notReturned);
+            statistics.put("topBooks", topBooks);
+            statistics.put("topUsers", topUsers);
+
+            return new ResponseEntity<>(statistics, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Không thể lấy thống kê: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

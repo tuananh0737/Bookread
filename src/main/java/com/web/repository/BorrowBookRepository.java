@@ -63,4 +63,10 @@ public interface BorrowBookRepository extends JpaRepository<BorrowBook, Long> {
     @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.returned = false")
     long countBooksCurrentlyBorrowed();
 
+    @Query("SELECT b.book.name, COUNT(b) as borrowCount FROM BorrowBook b GROUP BY b.book.id ORDER BY borrowCount DESC")
+    List<Object[]> findTopBooks();
+
+    @Query("SELECT b.user.fullname, COUNT(b) as borrowCount FROM BorrowBook b GROUP BY b.user.id ORDER BY borrowCount DESC")
+    List<Object[]> findTopUsers();
+
 }
