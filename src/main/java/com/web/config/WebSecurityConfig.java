@@ -53,6 +53,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/librarian/**").hasAnyAuthority("ROLE_LIBRARIAN")
                 .antMatchers("/api/user/**").hasAuthority("ROLE_USER")
                 .antMatchers("/api/all/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
+                .antMatchers("/api/system/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")
                 .and()
                 .apply(securityConfigurerAdapter()).and().sessionManagement()
                 .and().logout().logoutUrl("/logout").logoutSuccessUrl("/login");

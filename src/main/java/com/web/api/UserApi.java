@@ -80,7 +80,7 @@ public class UserApi {
     }
 
 
-    @PostMapping("/admin/update-info")
+    @PostMapping("/system/update-info")
     public ResponseEntity<?> adminUpdateInfo(@RequestBody User user) {
         try {
             User updatedUser = userService.updateUserInfo(user);
@@ -90,21 +90,7 @@ public class UserApi {
         }
     }
 
-    @PostMapping("admin/search-user")
-    public List<User> search(@RequestBody UserSearch userSearch) {
-        String param = userSearch.getParam();
-        if (param == null) {
-            param = "";
-        }
-        param = "%" + param + "%";
-        List<User> list = null;
-        if (param != null) {
-            list = userRepository.findByParam(param);
-        }
-        return list;
-    }
-
-    @PostMapping("librarian/search-user")
+    @PostMapping("system/search-user")
     public List<User> LibrarianSearch(@RequestBody UserSearch userSearch) {
         String param = userSearch.getParam();
         if (param == null) {
@@ -118,7 +104,7 @@ public class UserApi {
         return list;
     }
 
-    @PostMapping("/admin/update-user")
+    @PostMapping("/system/update-user")
     public ResponseEntity<?> update(@RequestBody User user) {
         User existingUser = userRepository.findById(user.getId()).orElse(null);
 

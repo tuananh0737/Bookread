@@ -4,7 +4,9 @@ import com.web.config.MessageException;
 import com.web.entity.*;
 import com.web.repository.BookRepository;
 import com.web.repository.BorrowBookRepository;
+import com.web.repository.BorrowRequestRepository;
 import com.web.repository.UserRepository;
+import com.web.service.NotificationService;
 import com.web.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -37,8 +39,13 @@ public class BorrowBookApi {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private NotificationService notificationService;
 
-    @PostMapping("/librarian/add-borrowBook")
+    @Autowired
+    private BorrowRequestRepository borrowRequestRepository;
+
+    @PostMapping("/system/add-borrowBook")
     public ResponseEntity<?> addBorrowBook(@RequestBody BorrowBook borrowBook) {
         if (borrowBook.getUser() == null || borrowBook.getUser().getId() == null) {
             throw new MessageException("Thông tin người dùng không hợp lệ");
@@ -72,7 +79,7 @@ public class BorrowBookApi {
         return new ResponseEntity<>(savedBorrowBook, HttpStatus.CREATED);
     }
 
-    @PostMapping("/librarian/return-book")
+    @PostMapping("/system/return-book")
     public ResponseEntity<?> returnBook(@RequestParam("borrowBookId") Long borrowBookId) {
         try {
             BorrowBook borrowBook = borrowBookRepository.findById(borrowBookId)
@@ -90,6 +97,15 @@ public class BorrowBookApi {
             borrowBook.setReturned(true);
             borrowBookRepository.save(borrowBook);
 
+            // Notify users waiting for this book
+            List<BorrowRequest> borrowRequests = borrowRequestRepository.findByBookIdAndNotifiedFalse(book.getId());
+            for (BorrowRequest request : borrowRequests) {
+                notificationService.sendNotification(request.getUser(),
+                        "Sách \"" + book.getName() + "\" đã sẵn sàng để mượn.");
+                request.setNotified(true);
+                borrowRequestRepository.save(request);
+            }
+
             return new ResponseEntity<>("Trả sách thành công", HttpStatus.OK);
         } catch (MessageException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
@@ -98,6 +114,7 @@ public class BorrowBookApi {
             return new ResponseEntity<>("Có lỗi xảy ra khi trả sách: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     // Người dùng xem danh sách sách đã mượn
     @GetMapping("/user/find-borrowBook-by-user")
@@ -108,14 +125,8 @@ public class BorrowBookApi {
     }
 
     // Admin xem danh sách mượn của người dùng
-    @GetMapping("/admin/find-borrowBook")
+    @GetMapping("/system/find-borrowBook")
     public ResponseEntity<List<BorrowBook>> findBorrowBooksByUserId(@RequestParam("userId") Long userId) {
-        List<BorrowBook> borrowBooks = borrowBookRepository.findByUser(userId);
-        return new ResponseEntity<>(borrowBooks, HttpStatus.OK);
-    }
-
-    @GetMapping("/librarian/find-borrowBook")
-    public ResponseEntity<List<BorrowBook>> findBorrowBooksByUser(@RequestParam("userId") Long userId) {
         List<BorrowBook> borrowBooks = borrowBookRepository.findByUser(userId);
         return new ResponseEntity<>(borrowBooks, HttpStatus.OK);
     }
