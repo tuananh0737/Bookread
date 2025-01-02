@@ -122,11 +122,10 @@ public class BookApi {
 
     // API mới để tra cứu thông tin sách bằng mã QR
     @PostMapping("/public/find-book-by-qr")
-    public ResponseEntity<?> findBookByQr(@RequestParam("qrCode") MultipartFile qrCode) {
+    public ResponseEntity<?> findBookByQr(@RequestBody String qrData) {
         try {
-            String decodedData = qrCodeService.decodeQr(qrCode.getBytes());
-            if (decodedData != null && decodedData.startsWith("ID: ")) {
-                Long bookId = Long.parseLong(decodedData.split(", ")[0].substring(4));
+            if (qrData != null && qrData.startsWith("ID: ")) {
+                Long bookId = Long.parseLong(qrData.split(", ")[0].substring(4));
                 Optional<Book> bookOptional = bookRepository.findById(bookId);
                 if (bookOptional.isPresent()) {
                     return new ResponseEntity<>(bookOptional.get(), HttpStatus.OK);
@@ -136,10 +135,11 @@ public class BookApi {
             } else {
                 return new ResponseEntity<>("Invalid QR code", HttpStatus.BAD_REQUEST);
             }
-        } catch (IOException | NotFoundException e) {
-            return new ResponseEntity<>("Failed to decode QR code", HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Failed to process QR code", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     //cập nhật vị trí sách
     @PostMapping("/admin/add-or-update-location")
