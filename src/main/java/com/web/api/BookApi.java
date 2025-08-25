@@ -81,7 +81,7 @@ public class BookApi {
     }
 
     @PostMapping("/public/search-book")
-    public List<Book> search(@RequestBody BookSearch bookSearch) {
+    public List<Book> search(@RequestBody BookSearch bookSearch) { 
         String param = bookSearch.getParam();
         Long authorId = bookSearch.getAuthorId();
         Long genreId = bookSearch.getGenreId();
