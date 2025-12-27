@@ -51,4 +51,7 @@ public class Book {
     @JoinColumn(name = "location_id")
     private BookLocation location;
 
+    @Column(name = "image")
+    private String image;
+
 }

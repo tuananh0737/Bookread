@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder; // [Sửa 1] Import PasswordEncoder
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,9 @@ public class UserService implements UserDetailsService {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder; // [Sửa 2] Inject PasswordEncoder
 
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
@@ -48,7 +52,8 @@ public class UserService implements UserDetailsService {
         Optional<User> users = userRepository.findByUsername(username);
         // check infor user
         checkUser(users);
-        if(users.get().getPassword().equals(password)){
+        // [Sửa 3] Sử dụng passwordEncoder.matches để so sánh mật khẩu chưa mã hóa và mật khẩu trong DB
+        if(passwordEncoder.matches(password, users.get().getPassword())){
             CustomUserDetails customUserDetails = new CustomUserDetails(users.get());
             String token = jwtTokenProvider.generateToken(customUserDetails);
             return token;
@@ -66,6 +71,8 @@ public class UserService implements UserDetailsService {
                 });
         user.setActived(true);
         user.setRole("ROLE_USER");
+        // [Sửa 4] Mã hóa mật khẩu trước khi lưu
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         User result = userRepository.save(user);
         return result;
     }
@@ -89,13 +96,14 @@ public class UserService implements UserDetailsService {
         return userRepository.save(existingUser);
     }
 
-    
+
     public void changePassword(ChangePasswordRequest changePasswordRequest) {
         Long userId = Long.valueOf(SecurityUtils.getCurrentUserLogin().get());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new MessageException("User not found", 404));
 
-        if (!user.getPassword().equals(changePasswordRequest.getOldPassword())) {
+        // [Sửa 5] Kiểm tra mật khẩu cũ bằng matches()
+        if (!passwordEncoder.matches(changePasswordRequest.getOldPassword(), user.getPassword())) {
             throw new MessageException("Old password is incorrect", 400);
         }
 
@@ -103,9 +111,9 @@ public class UserService implements UserDetailsService {
             throw new MessageException("New password cannot be empty", 400);
         }
 
-        user.setPassword(changePasswordRequest.getNewPassword());
+        // [Sửa 6] Mã hóa mật khẩu mới trước khi lưu
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.save(user);
     }
 
 }
-
