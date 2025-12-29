@@ -10,9 +10,12 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("*") // Cho phép mọi Frontend truy cập (hoặc điền domain Vercel cụ thể)
+                .allowedOrigins(
+                        "http://localhost:4200",
+                        "https://library-qgm1.vercel.app"
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(false); // Nếu dùng "*" ở allowedOrigins thì allowCredentials phải là false
+                .allowCredentials(true);
     }
 }
