@@ -57,7 +57,7 @@ public interface BorrowBookRepository extends JpaRepository<BorrowBook, Long> {
     @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.createdDate BETWEEN ?1 AND ?2")
     long countTotalBorrowedBetween(Timestamp start, Timestamp end);
 
-    @Query("SELECT AVG(DATEDIFF(b.actualReturnDate, b.createdDate)) FROM BorrowBook b WHERE b.returned = true")
+    @Query(value = "SELECT AVG(EXTRACT(DAY FROM (b.actual_return_date - b.created_date))) FROM borrow b WHERE b.returned = true", nativeQuery = true)
     Double calculateAverageBorrowTime();
 
     @Query("SELECT COUNT(b) FROM BorrowBook b WHERE b.returned = false")

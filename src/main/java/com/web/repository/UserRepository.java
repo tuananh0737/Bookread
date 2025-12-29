@@ -13,7 +13,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User,Long> {
 
-    @Query(value = "select u.* from user u",nativeQuery = true)
+    @Query(value = "select u.* from users u",nativeQuery = true)
     Page<User> findAll(Pageable pageable);
 
     @Query(value = "select u.* from user u where u.username = ?1 and u.password = ?2", nativeQuery = true)
