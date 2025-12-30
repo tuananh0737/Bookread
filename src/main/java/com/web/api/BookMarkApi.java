@@ -15,7 +15,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin("*")
 public class BookMarkApi {
     @Autowired
     private BookMarkRepository bookMarkRepository;

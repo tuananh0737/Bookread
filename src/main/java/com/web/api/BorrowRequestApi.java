@@ -14,7 +14,6 @@ import java.sql.Timestamp;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin("*")
 public class BorrowRequestApi {
 
     @Autowired
