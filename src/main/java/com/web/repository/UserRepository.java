@@ -16,13 +16,13 @@ public interface UserRepository extends JpaRepository<User,Long> {
     @Query(value = "select u.* from users u",nativeQuery = true)
     Page<User> findAll(Pageable pageable);
 
-    @Query(value = "select u.* from user u where u.username = ?1 and u.password = ?2", nativeQuery = true)
+    @Query(value = "select u.* from users u where u.username = ?1 and u.password = ?2", nativeQuery = true)
     Optional<User> findByUsernameAndPassword(String username, String password);
 
-    @Query(value = "select u.* from user u where u.username = ?1", nativeQuery = true)
+    @Query(value = "select u.* from users u where u.username = ?1", nativeQuery = true)
     Optional<User> findByUsername(String username);
 
-    @Query(value = "select u.* from user u where u.role = ?1",nativeQuery = true)
+    @Query(value = "select u.* from users u where u.role = ?1",nativeQuery = true)
     List<User> getUserByRole(String role);
 
     @Query("select u from User u where u.fullname like ?1 or u.idCard like ?1 or u.phone like ?1")
