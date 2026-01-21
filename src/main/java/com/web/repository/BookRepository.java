@@ -1,7 +1,6 @@
 package com.web.repository;
 
 import com.web.entity.Book;
-import com.web.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -32,7 +31,8 @@ public interface BookRepository extends JpaRepository<Book,Long> {
     @Query("select b from Book b order by b.averageRating desc")
     public List<Book> findAllOrderByAverageRatingDesc();
 
-    @Query("SELECT SUM(b.quantity) FROM Book b")
+
+    @Query("SELECT COALESCE(SUM(b.quantity), 0) FROM Book b")
     long countTotalAvailableBooks();
 
 }
