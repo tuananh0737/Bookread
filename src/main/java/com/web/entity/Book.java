@@ -3,6 +3,7 @@ package com.web.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -43,7 +44,7 @@ public class Book {
     @JsonManagedReference
     private List<Comment> comments = new ArrayList<>();
 
-    @Lob
+    @Type(type = "org.hibernate.type.BinaryType")
     @Column(name = "qr_code")
     private byte[] qrCode;
 
