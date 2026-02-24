@@ -1,6 +1,6 @@
 package com.web.entity;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
@@ -40,10 +40,11 @@ public class Book {
     @JoinColumn(name = "genres_id")
     private Genres genres;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE)
-    @JsonManagedReference
     private List<Comment> comments = new ArrayList<>();
 
+    @JsonIgnore
     @Type(type = "org.hibernate.type.BinaryType")
     @Column(name = "qr_code")
     private byte[] qrCode;
