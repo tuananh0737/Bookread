@@ -50,22 +50,22 @@ public class BookService {
                 .orElseThrow(() -> new MessageException("Không tìm thấy thể loại"));
 
         Book bookToSave;
+        boolean isNewBook = (bookRequest.getId() == null);
+        boolean isNameChanged = false;
 
-        // 2. Phân loại xử lý: Thêm mới (id = null) hay Cập nhật (id != null)
-        if (bookRequest.getId() == null) {
-            // LÀ THÊM MỚI
+        if (isNewBook) {
             bookToSave = bookRequest;
             bookToSave.setAuthor(author);
             bookToSave.setGenres(genres);
-            // Lưu lần 1 để database sinh ra ID
             bookToSave = bookRepository.save(bookToSave);
         } else {
-            // LÀ CẬP NHẬT
-            // Lấy sách cũ từ DB lên để không bị mất các trường như comments, location, averageRating
             bookToSave = bookRepository.findById(bookRequest.getId())
                     .orElseThrow(() -> new MessageException("Không tìm thấy sách cần cập nhật"));
 
-            // Chỉ cập nhật các trường được phép thay đổi
+            if (bookRequest.getName() != null && !bookRequest.getName().equals(bookToSave.getName())) {
+                isNameChanged = true;
+            }
+
             bookToSave.setName(bookRequest.getName());
             bookToSave.setNumberPage(bookRequest.getNumberPage());
             bookToSave.setPublishYear(bookRequest.getPublishYear());
@@ -74,18 +74,17 @@ public class BookService {
             bookToSave.setImage(bookRequest.getImage());
             bookToSave.setAuthor(author);
             bookToSave.setGenres(genres);
-            // Không set lại comments, location hay rating ở đây để bảo toàn dữ liệu
         }
 
-        // 3. Xử lý tạo lại/tạo mới QR Code (sau khi chắc chắn sách đã có ID)
-        try {
-            byte[] qrCode = qrCodeService.generateQrCodeForBook(bookToSave);
-            bookToSave.setQrCode(qrCode);
-        } catch (WriterException | IOException e) {
-            throw new MessageException("Lỗi khi tạo mã QR cho sách: " + e.getMessage());
+        if (isNewBook || isNameChanged || bookToSave.getQrCode() == null) {
+            try {
+                byte[] qrCode = qrCodeService.generateQrCodeForBook(bookToSave);
+                bookToSave.setQrCode(qrCode);
+            } catch (WriterException | IOException e) {
+                throw new MessageException("Lỗi khi tạo mã QR cho sách: " + e.getMessage());
+            }
         }
 
-        // 4. Lưu kết quả cuối cùng
         return bookRepository.save(bookToSave);
     }
 }
