@@ -42,7 +42,7 @@ public class BookService {
         if (bookRequest.getGenres() == null || bookRequest.getGenres().getId() == null) {
             throw new MessageException("Không được để trống thể loại");
         }
-        
+
         Author author = new Author();
         author.setId(bookRequest.getAuthor().getId());
 

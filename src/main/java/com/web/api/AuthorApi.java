@@ -30,7 +30,7 @@ public class AuthorApi {
         return authorRepository.findAll();
     }
 
-    @DeleteMapping("/admin/delete-author")
+    @DeleteMapping("/system/delete-author")
     public void delete(@RequestParam("id") Long id) {
         authorRepository.deleteById(id);
     }
