@@ -36,18 +36,18 @@ public class BookService {
     }
 
     public Book saveOrUpdateBook(Book bookRequest) {
-        // 1. Validate dữ liệu đầu vào
         if (bookRequest.getAuthor() == null || bookRequest.getAuthor().getId() == null) {
             throw new MessageException("Không được để trống tác giả");
         }
         if (bookRequest.getGenres() == null || bookRequest.getGenres().getId() == null) {
             throw new MessageException("Không được để trống thể loại");
         }
+        
+        Author author = new Author();
+        author.setId(bookRequest.getAuthor().getId());
 
-        Author author = authorRepository.findById(bookRequest.getAuthor().getId())
-                .orElseThrow(() -> new MessageException("Không tìm thấy tác giả"));
-        Genres genres = genresRepository.findById(bookRequest.getGenres().getId())
-                .orElseThrow(() -> new MessageException("Không tìm thấy thể loại"));
+        Genres genres = new Genres();
+        genres.setId(bookRequest.getGenres().getId());
 
         Book bookToSave;
         boolean isNewBook = (bookRequest.getId() == null);
