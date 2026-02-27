@@ -11,6 +11,6 @@ import java.util.List;
 
 @Repository
 public interface AuthorRepository extends JpaRepository<Author,Long> {
-    @Query("select a from Author a where a.fullname like ?1")
+    @Query("select a from Author a where LOWER(a.fullname) like LOWER(?1)")
     public List<Author> findByParam(String param);
 }

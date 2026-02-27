@@ -10,19 +10,20 @@ import java.util.List;
 @Repository
 public interface BookRepository extends JpaRepository<Book,Long> {
 
-    @Query("select b from Book b where b.name like ?1 or b.author.fullname like ?1 or b.genres.name like ?1")
+    // SỬA LẠI:
+    @Query("select b from Book b where LOWER(b.name) like LOWER(?1) or LOWER(b.author.fullname) like LOWER(?1) or LOWER(b.genres.name) like LOWER(?1)")
     public List<Book> findByParam(String param);
 
-    @Query("select b from Book b where (b.name like ?1 or b.author.fullname like ?1 or b.genres.name like ?1) and b.genres.id = ?2")
+    @Query("select b from Book b where (LOWER(b.name) like LOWER(?1) or LOWER(b.author.fullname) like LOWER(?1) or LOWER(b.genres.name) like LOWER(?1)) and b.genres.id = ?2")
     public List<Book> findByParamAndGenre(String param, Long genreId);
 
-    @Query("select b from Book b where (b.name like ?1 or b.author.fullname like ?1 or b.genres.name like ?1) and b.author.id = ?2")
+    @Query("select b from Book b where (LOWER(b.name) like LOWER(?1) or LOWER(b.author.fullname) like LOWER(?1) or LOWER(b.genres.name) like LOWER(?1)) and b.author.id = ?2")
     public List<Book> findByParamAndAuthor(String param, Long authorId);
 
-    @Query("select b from Book b where (b.name like ?1 or b.author.fullname like ?1 or b.genres.name like ?1) and b.author.id = ?2 and b.genres.id = ?3")
+    @Query("select b from Book b where (LOWER(b.name) like LOWER(?1) or LOWER(b.author.fullname) like LOWER(?1) or LOWER(b.genres.name) like LOWER(?1)) and b.author.id = ?2 and b.genres.id = ?3")
     public List<Book> findByParamAndAuthorAndGenre(String param, Long authorId, Long genreId);
 
-    @Query("select b from Book b where b.genres.name like ?1")
+    @Query("select b from Book b where LOWER(b.genres.name) like LOWER(?1)")
     public List<Book> findByGenres(String param);
 
     @Query("select b from Book b where b.location.id = ?1")
