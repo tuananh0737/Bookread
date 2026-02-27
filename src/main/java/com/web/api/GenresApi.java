@@ -25,7 +25,7 @@ public class GenresApi {
     @Autowired
     private BookRepository bookRepository;
 
-    @PostMapping("/admin/add-update-genres")
+    @PostMapping("/system/add-update-genres")
     public ResponseEntity<?> saveOrUpdate(@RequestBody Genres genres) {
         Genres result = genresRepository.save(genres);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -36,7 +36,7 @@ public class GenresApi {
         return genresRepository.findAll();
     }
 
-    @DeleteMapping("/admin/delete-genres")
+    @DeleteMapping("/system/delete-genres")
     public void delete(@RequestParam("id") Long id) {
         genresRepository.deleteById(id);
     }

@@ -31,7 +31,7 @@ public class BorrowRequestApi {
     @Autowired
     private BorrowRequestService borrowRequestService;
 
-    @PostMapping("/admin/borrow-requests")
+    @PostMapping("/system/borrow-requests")
     public ResponseEntity<String> saveBorrowRequest(@RequestParam Long userId, @RequestParam Long bookId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));

@@ -19,7 +19,7 @@ public class AuthorApi {
 
     private AuthorSearch authorSearch;
 
-    @PostMapping("/admin/add-update-author")
+    @PostMapping("/system/add-update-author")
     public ResponseEntity<?> saveOrUpdate(@RequestBody Author author) {
         Author result = authorRepository.save(author);
         return new ResponseEntity<>(result, HttpStatus.CREATED);

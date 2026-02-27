@@ -1,6 +1,5 @@
 package com.web.api;
 
-import com.google.zxing.NotFoundException;
 import com.google.zxing.WriterException;
 import com.web.config.MessageException;
 import com.web.dto.BookSearch;
@@ -10,6 +9,7 @@ import com.web.repository.AuthorRepository;
 import com.web.repository.BookLocationRepository;
 import com.web.repository.BookRepository;
 import com.web.repository.GenresRepository;
+import com.web.service.BookService;
 import com.web.service.QrCodeService;
 import com.web.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +37,9 @@ public class BookApi {
     @Autowired
     private GenresRepository genresRepository;
 
+    @Autowired
+    private BookService bookService;
+
     private UserService userService;
 
     @Autowired
@@ -45,29 +48,10 @@ public class BookApi {
     @Autowired
     private BookLocationRepository bookLocationRepository;
 
-    @PostMapping("/admin/add-update-book")
+    // Đã đổi từ /admin/ sang /system/ để cả Admin và Librarian đều dùng được
+    @PostMapping("/system/add-update-book")
     public ResponseEntity<?> saveOrUpdate(@RequestBody Book book) {
-        if (book.getAuthor() == null) {
-            throw new MessageException("Không được để trống tác giả");
-        }
-        if (book.getGenres() == null) {
-            throw new MessageException("Không được để trống thể loại");
-        }
-        if (authorRepository.findById(book.getAuthor().getId()).isEmpty()) {
-            throw new MessageException("Không tìm thấy tác giá");
-        }
-        if (genresRepository.findById(book.getGenres().getId()).isEmpty()) {
-            throw new MessageException("Không tìm thấy thể loại");
-        }
-
-        try {
-            byte[] qrCode = qrCodeService.generateQrCodeForBook(book);
-            book.setQrCode(qrCode);
-        } catch (WriterException | IOException e) {
-            return new ResponseEntity<>("Failed to generate QR code", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-
-        Book result = bookRepository.save(book);
+        Book result = bookService.saveOrUpdateBook(book);
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
@@ -77,19 +61,18 @@ public class BookApi {
             @RequestParam(defaultValue = "30") int size) {
 
         Pageable pageable = PageRequest.of(page, size);
-
         Page<Book> bookPage = bookRepository.findAll(pageable);
-
         return new ResponseEntity<>(bookPage, HttpStatus.OK);
     }
 
-    @DeleteMapping("/admin/delete-book")
+    // Đã đổi từ /admin/ sang /system/
+    @DeleteMapping("/system/delete-book")
     public void delete(@RequestParam("id") Long id) {
         bookRepository.deleteById(id);
     }
 
     @PostMapping("/public/search-book")
-    public List<Book> search(@RequestBody BookSearch bookSearch) { 
+    public List<Book> search(@RequestBody BookSearch bookSearch) {
         String param = bookSearch.getParam();
         Long authorId = bookSearch.getAuthorId();
         Long genreId = bookSearch.getGenreId();
@@ -113,7 +96,8 @@ public class BookApi {
         return list;
     }
 
-    @PostMapping("/admin/generate-qr-codes-for-all-books")
+    // Đã đổi từ /admin/ sang /system/
+    @PostMapping("/system/generate-qr-codes-for-all-books")
     public ResponseEntity<?> generateQrCodesForAllBooks() {
         List<Book> books = bookRepository.findAll();
         for (Book book : books) {
@@ -128,7 +112,6 @@ public class BookApi {
         return new ResponseEntity<>("QR codes generated and saved for all books.", HttpStatus.OK);
     }
 
-    // API mới để tra cứu thông tin sách bằng mã QR
     @PostMapping("/public/find-book-by-qr")
     public ResponseEntity<?> findBookByQr(@RequestBody String qrData) {
         try {
@@ -148,9 +131,8 @@ public class BookApi {
         }
     }
 
-
-    //cập nhật vị trí sách
-    @PostMapping("/admin/add-or-update-location")
+    // Đã đổi từ /admin/ sang /system/
+    @PostMapping("/system/add-or-update-location")
     public ResponseEntity<?> addOrUpdateLocation(@RequestParam("bookId") Long bookId,
                                                  @RequestBody BookLocation location) {
         Book book = bookRepository.findById(bookId)
@@ -167,7 +149,6 @@ public class BookApi {
         return new ResponseEntity<>("Cập nhật vị trí sách thành công", HttpStatus.OK);
     }
 
-    //lấy thông tin vị trí sách
     @GetMapping("/public/location-book")
     public ResponseEntity<?> getBookLocation(@RequestParam("bookId") Long bookId) {
         Book book = bookRepository.findById(bookId)
@@ -177,8 +158,7 @@ public class BookApi {
         return new ResponseEntity<>(location, HttpStatus.OK);
     }
 
-    //tìn sách theo kệ
-    @GetMapping("public/book-by-location")
+    @GetMapping("/public/book-by-location")
     public ResponseEntity<List<Book>> getBooksByLocation(@RequestParam("locationId") Long locationId) {
         List<Book> books = bookRepository.findByBookLocation(locationId);
         if (books.isEmpty()) {
@@ -195,5 +175,4 @@ public class BookApi {
         }
         return ResponseEntity.ok(books);
     }
-
 }
