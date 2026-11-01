@@ -17,8 +17,10 @@ public class CirculationService {
     private final BookRepository books;
     private final BorrowBookRepository loans;
     private final UserRepository users;
-    public CirculationService(BookRepository books, BorrowBookRepository loans, UserRepository users) {
-        this.books=books; this.loans=loans; this.users=users;
+    private final BorrowRequestService borrowRequests;
+    public CirculationService(BookRepository books, BorrowBookRepository loans, UserRepository users,
+                              BorrowRequestService borrowRequests) {
+        this.books=books; this.loans=loans; this.users=users; this.borrowRequests=borrowRequests;
     }
     @Transactional
     public BorrowBook borrow(Long userId, Long bookId) {
@@ -42,5 +44,6 @@ public class CirculationService {
         loan.setReturned(true);
         loan.setActualReturnDate(new Timestamp(System.currentTimeMillis()));
         book.setQuantity(book.getQuantity()+1);
+        borrowRequests.notifyUsersWhenBookAvailable(book);
     }
 }
