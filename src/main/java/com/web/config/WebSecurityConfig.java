@@ -1,76 +1,40 @@
 package com.web.config;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import com.web.repository.UserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.BeanIds;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-@EnableWebSecurity
 @Configuration
+@EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-
-    private final JwtTokenProvider tokenProvider;
-
-    private final UserRepository userRepository;
-
-    public WebSecurityConfig(JwtTokenProvider tokenProvider, UserRepository userRepository) {
-        this.tokenProvider = tokenProvider;
-        this.userRepository = userRepository;
+    private final JwtTokenProvider tokens;
+    private final UserRepository users;
+    public WebSecurityConfig(JwtTokenProvider tokens, UserRepository users) {
+        this.tokens = tokens; this.users = users;
     }
-
-    @Bean(BeanIds.AUTHENTICATION_MANAGER)
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
+    @Override protected void configure(HttpSecurity http) throws Exception {
+        http.cors().and().csrf().disable()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and().exceptionHandling()
+            .authenticationEntryPoint((req,res,ex) -> res.sendError(HttpStatus.UNAUTHORIZED.value()))
+            .and().authorizeRequests()
+            .antMatchers("/api/login", "/api/regis", "/api/public/**").permitAll()
+            .antMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+            .antMatchers("/api/system/**").hasAnyAuthority("ROLE_ADMIN","ROLE_LIBRARIAN")
+            .antMatchers("/api/user/**").hasAnyAuthority("ROLE_USER","ROLE_ADMIN","ROLE_LIBRARIAN")
+            .antMatchers("/api/all/**").hasAnyAuthority("ROLE_ADMIN","ROLE_USER")
+            .antMatchers("/api/userlogged").authenticated()
+            .anyRequest().denyAll()
+            .and().apply(new JWTConfigurer(tokens, users));
     }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-
-        http
-                .cors().and()
-                .csrf()
-                .disable()
-                .exceptionHandling()
-                .and()
-                .authorizeRequests()
-                .antMatchers("/api/public/**").permitAll()
-                .antMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                .antMatchers("/api/librarian/**").hasAnyAuthority("ROLE_LIBRARIAN")
-                .antMatchers("/api/user/**").hasAuthority("ROLE_USER")
-                .antMatchers("/api/all/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_USER")
-                .antMatchers("/api/system/**").hasAnyAuthority("ROLE_ADMIN", "ROLE_LIBRARIAN")
-                .and()
-                .apply(securityConfigurerAdapter()).and().sessionManagement()
-                .and().logout().logoutUrl("/logout").logoutSuccessUrl("/login");
-    }
-
-    @Override
-    public void configure(WebSecurity web) throws Exception {
-
-    }
-    private JWTConfigurer securityConfigurerAdapter() {
-        return new JWTConfigurer(tokenProvider, userRepository);
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+    @Bean public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
 }
-

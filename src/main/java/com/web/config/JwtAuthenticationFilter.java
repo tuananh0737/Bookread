@@ -1,70 +1,38 @@
 package com.web.config;
 
-import com.web.service.CustomUserDetails;
+import com.web.entity.User;
 import com.web.repository.UserRepository;
-import com.web.service.UserService;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.util.StringUtils;
-import org.springframework.web.filter.GenericFilterBean;
-
+import org.springframework.web.filter.OncePerRequestFilter;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Collections;
 
-@Slf4j
-public class JwtAuthenticationFilter extends GenericFilterBean {
-    private final JwtTokenProvider tokenProvider;
-
-    @Autowired
-    private UserService customUserDetailsService;
-
-    private final UserRepository userRepository;
-
-    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, UserRepository userRepository) {
-        this.tokenProvider = tokenProvider;
-        this.userRepository = userRepository;
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private final JwtTokenProvider tokens;
+    private final UserRepository users;
+    public JwtAuthenticationFilter(JwtTokenProvider tokens, UserRepository users) {
+        this.tokens = tokens; this.users = users;
     }
-
-
-
-    private String getJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        // Kiểm tra xem header Authorization có chứa thông tin jwt không
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
-
-
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
-        try {
-            // Lấy jwt từ request
-            String jwt = getJwtFromRequest((HttpServletRequest) request);
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-                // Lấy id user từ chuỗi jwt
-                Long userId = tokenProvider.getUserIdFromJWT(jwt);
-                // Lấy thông tin người dùng từ id
-                UserDetails userDetails = new CustomUserDetails(userRepository.findById(userId).get());
-                System.out.println("user by access token-----: "+userDetails);
-                if(userDetails != null) {
-                    // Nếu người dùng hợp lệ, set thông tin cho Seturity Context
-                    Authentication authentications = this.tokenProvider.getAuthentication(jwt);
-                    SecurityContextHolder.getContext().setAuthentication(authentications);
-                }
+    @Override protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                                FilterChain chain) throws ServletException, IOException {
+        String authorization = request.getHeader("Authorization");
+        if (StringUtils.hasText(authorization) && authorization.startsWith("Bearer ")) {
+            String jwt = authorization.substring(7);
+            if (tokens.validateToken(jwt)) {
+                users.findById(tokens.getUserIdFromJWT(jwt)).filter(u ->
+                        Boolean.TRUE.equals(u.getActived()) && StringUtils.hasText(u.getRole()))
+                        .ifPresent(u -> SecurityContextHolder.getContext().setAuthentication(
+                                new UsernamePasswordAuthenticationToken(u.getId().toString(), null,
+                                        Collections.singleton(new SimpleGrantedAuthority(u.getRole())))));
             }
-        } catch (Exception ex) {
-            log.error("failed on set user authentication", ex);
         }
-        filterChain.doFilter(request, response);
+        chain.doFilter(request, response);
     }
 }
-

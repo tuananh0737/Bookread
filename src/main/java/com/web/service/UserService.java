@@ -36,7 +36,7 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         Optional<User> user = userRepository.findByUsername(username);
-        if (user.get() == null) {
+        if (!user.isPresent()) {
             throw new UsernameNotFoundException(username);
         }
         return new CustomUserDetails(user.get());
@@ -69,6 +69,7 @@ public class UserService implements UserDetailsService {
                 .ifPresent(exist->{
                     throw new MessageException("Tên đăng nhập đã tồn tại", 400);
                 });
+        user.setId(null);
         user.setActived(true);
         user.setRole("ROLE_USER");
         // [Sửa 4] Mã hóa mật khẩu trước khi lưu
@@ -85,6 +86,14 @@ public class UserService implements UserDetailsService {
             throw new MessageException("Tài khoản đã bị khóa");
         }
         return true;
+    }
+
+    public User updateOwnInfo(User user) {
+        Long currentId = getUserWithAuthority().getId();
+        if (user.getId() != null && !currentId.equals(user.getId()))
+            throw new MessageException("Cannot edit another user's profile",403);
+        user.setId(currentId);
+        return updateUserInfo(user);
     }
 
     public User updateUserInfo(User user) {

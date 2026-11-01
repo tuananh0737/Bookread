@@ -32,7 +32,7 @@ public class BorrowBook {
     @JoinColumn(name = "book_id")
     private Book book;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
 }

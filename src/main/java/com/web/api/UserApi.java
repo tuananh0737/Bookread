@@ -59,7 +59,7 @@ public class UserApi {
     @PostMapping("/user/update-info")
     public ResponseEntity<?> userUpdateInfo(@RequestBody User user) {
         try {
-            User updatedUser = userService.updateUserInfo(user);
+            User updatedUser = userService.updateOwnInfo(user);
             return new ResponseEntity<>(updatedUser, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>("Failed to update user info", HttpStatus.BAD_REQUEST);

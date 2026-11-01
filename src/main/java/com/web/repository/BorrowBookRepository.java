@@ -3,6 +3,8 @@ package com.web.repository;
 import com.web.entity.BorrowBook;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
+import javax.persistence.LockModeType;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
@@ -11,6 +13,12 @@ import java.util.Optional;
 
 @Repository
 public interface BorrowBookRepository extends JpaRepository<BorrowBook, Long> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select b from BorrowBook b where b.id = ?1")
+    Optional<BorrowBook> lockById(Long id);
+
+    @Query("select case when count(b)>0 then true else false end from BorrowBook b where b.user.id=?1 and b.book.id=?2 and b.returned=false")
+    boolean existsActiveLoan(Long userId,Long bookId);
 
     @Query("select b from BorrowBook b where b.user.id = ?1 and b.book.id = ?2")
     public Optional<BorrowBook> findByUserAndBook(Long userId, Long bookId);

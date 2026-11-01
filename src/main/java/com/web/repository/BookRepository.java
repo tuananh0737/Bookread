@@ -3,12 +3,18 @@ package com.web.repository;
 import com.web.entity.Book;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
+import javax.persistence.LockModeType;
+import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
 public interface BookRepository extends JpaRepository<Book,Long> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select b from Book b where b.id = ?1")
+    Optional<Book> lockById(Long id);
 
     // SỬA LẠI:
     @Query("select b from Book b where LOWER(b.name) like LOWER(?1) or LOWER(b.author.fullname) like LOWER(?1) or LOWER(b.genres.name) like LOWER(?1)")
