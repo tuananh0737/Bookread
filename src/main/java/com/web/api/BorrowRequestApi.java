@@ -44,20 +44,13 @@ public class BorrowRequestApi {
         }
     }
 
+    @Autowired
+    private com.web.service.CirculationService circulationService;
+
+    /** Legacy path retained for existing clients; all returns use the same transaction. */
     @PostMapping("/system/return-borrow")
     public ResponseEntity<String> returnBook(@RequestParam Long borrowBookId) {
-        BorrowBook borrowBook = borrowBookRepository.findById(borrowBookId)
-                .orElseThrow(() -> new RuntimeException("Borrow record not found"));
-        borrowBook.setReturned(true);
-        borrowBook.setActualReturnDate(new Timestamp(System.currentTimeMillis()));
-
-        Book book = borrowBook.getBook();
-        book.setQuantity(book.getQuantity() + 1);
-        bookRepository.save(book);
-
-        borrowRequestService.notifyUsersWhenBookAvailable(book);
-        return ResponseEntity.ok("Book returned and notifications sent.");
+        circulationService.returnLoan(borrowBookId);
+        return ResponseEntity.ok("Book returned");
     }
-
-
 }

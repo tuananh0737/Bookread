@@ -44,76 +44,23 @@ public class BorrowBookApi {
     @Autowired
     private BorrowRequestRepository borrowRequestRepository;
 
+    @Autowired
+    private com.web.service.CirculationService circulationService;
+
     @PostMapping("/system/add-borrowBook")
-    public ResponseEntity<?> addBorrowBook(@RequestBody BorrowBook borrowBook) {
-        if (borrowBook.getUser() == null || borrowBook.getUser().getId() == null) {
-            throw new MessageException("Thông tin người dùng không hợp lệ");
-        }
-        User user = userService.findById(borrowBook.getUser().getId())
-                .orElseThrow(() -> new MessageException("Người dùng không tồn tại"));
-
-        if (borrowBook.getBook() == null || borrowBook.getBook().getId() == null) {
-            throw new MessageException("Thông tin sách không hợp lệ");
-        }
-        Book book = bookRepository.findById(borrowBook.getBook().getId())
-                .orElseThrow(() -> new MessageException("Sách không tồn tại"));
-
-        if (book.getQuantity() <= 0) {
-            throw new MessageException("Sách đã hết số lượng");
-        }
-
-        if (borrowBookRepository.findByUserAndBook(user.getId(), book.getId()).isPresent()) {
-            throw new MessageException("Người dùng đã mượn sách này");
-        }
-
-        book.setQuantity(book.getQuantity() - 1);
-        bookRepository.save(book);
-
-        borrowBook.setUser(user);
-        borrowBook.setCreatedDate(new Timestamp(System.currentTimeMillis()));
-        borrowBook.setReturnDueDate(Timestamp.valueOf(LocalDateTime.now().plusDays(10))); // Thêm hạn trả sách
-        borrowBook.setReturned(false); // Mặc định chưa trả
-
-        BorrowBook savedBorrowBook = borrowBookRepository.save(borrowBook);
-        return new ResponseEntity<>(savedBorrowBook, HttpStatus.CREATED);
+    public ResponseEntity<?> addBorrowBook(@RequestBody BorrowBook request) {
+        if (request.getUser()==null || request.getUser().getId()==null ||
+            request.getBook()==null || request.getBook().getId()==null)
+            throw new MessageException("User and book IDs are required",400);
+        BorrowBook loan=circulationService.borrow(request.getUser().getId(),request.getBook().getId());
+        return new ResponseEntity<>(loan,HttpStatus.CREATED);
     }
 
     @PostMapping("/system/return-book")
-    public ResponseEntity<?> returnBook(@RequestParam("borrowBookId") Long borrowBookId) {
-        try {
-            BorrowBook borrowBook = borrowBookRepository.findById(borrowBookId)
-                    .orElseThrow(() -> new MessageException("Thông tin mượn sách không tồn tại"));
-
-            if (borrowBook.getActualReturnDate() != null && borrowBook.getReturned() != null && borrowBook.getReturned()) {
-                return new ResponseEntity<>("Sách đã được trả trước đó", HttpStatus.BAD_REQUEST);
-            }
-
-            Book book = borrowBook.getBook();
-            book.setQuantity(book.getQuantity() + 1);
-            bookRepository.save(book);
-
-            borrowBook.setActualReturnDate(new Timestamp(System.currentTimeMillis()));
-            borrowBook.setReturned(true);
-            borrowBookRepository.save(borrowBook);
-
-            // Notify users waiting for this book
-            List<BorrowRequest> borrowRequests = borrowRequestRepository.findByBookIdAndNotifiedFalse(book.getId());
-            for (BorrowRequest request : borrowRequests) {
-                notificationService.sendNotification(request.getUser(),
-                        "Sách \"" + book.getName() + "\" đã sẵn sàng để mượn.");
-                request.setNotified(true);
-                borrowRequestRepository.save(request);
-            }
-
-            return new ResponseEntity<>("Trả sách thành công", HttpStatus.OK);
-        } catch (MessageException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>("Có lỗi xảy ra khi trả sách: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<?> returnBook(@RequestParam("borrowBookId") Long id) {
+        circulationService.returnLoan(id);
+        return ResponseEntity.ok("Book returned");
     }
-
 
     // Người dùng xem danh sách sách đã mượn
     @GetMapping("/user/find-borrowBook-by-user")
