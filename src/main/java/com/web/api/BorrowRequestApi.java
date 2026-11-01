@@ -36,7 +36,7 @@ public class BorrowRequestApi {
         User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new RuntimeException("Book not found"));
 
-        if (book.getQuantity() <= 0) {
+        if (book.getQuantity() == null || book.getQuantity() <= 0) {
             borrowRequestService.saveBorrowRequest(user, book);
             return ResponseEntity.ok("Borrow request saved. You will be notified when the book is available.");
         } else {
